@@ -26,6 +26,8 @@ INSTALLED_APPS = [
 
     "users",
     "creators",
+    "posts",
+    "subscriptions",
 
 ]
 
