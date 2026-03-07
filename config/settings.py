@@ -125,3 +125,5 @@ SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=env.int("JWT_ACCESS_MINUTES", default=30)),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=env.int("JWT_REFRESH_DAYS", default=15)),
 }
+
+TELEGRAM_BOT_TOKEN = env("TELEGRAM_BOT_TOKEN")

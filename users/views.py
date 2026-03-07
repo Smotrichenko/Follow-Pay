@@ -1,7 +1,10 @@
+import secrets
+
 from rest_framework import generics, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from .models import TelegramLinkToken
 from .password_reset import PasswordResetConfirmSerializer, PasswordResetSerializer
 from .serializers import MeSerializer, RegisterSerializer
 
@@ -37,3 +40,52 @@ class PasswordResetConfirmView(APIView):
         s.is_valid(raise_exception=True)
         s.save()
         return Response({"detail": "Пароль обновлен."})
+
+
+class CreateTelegramLinkView(APIView):
+    """Создаем ссылку для привязки в Telegram"""
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        token = secrets.token_hex(16)
+
+        TelegramLinkToken.objects.create(
+            user=request.user,
+            token=token,
+            is_used=False,
+        )
+
+        link = f"https://t.me/followandpay_bot?start={token}"
+        return Response({"telegram_link": link})
+
+
+class TelegramWebhookView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        data = request.data
+
+        message = data.get("message") or {}
+        text = data.get("text") or {}
+        chat = data.get("chat") or {}
+        chat_id = chat.get("id")
+
+        if not text or not chat_id:
+            return Response({"ok": True})
+
+        if text.startswith("/start "):
+            token = text.replace("/start ", "").strip()
+            token_obj = TelegramLinkToken.objects.filter(token=token, is_used=False).select_related("user").first()
+
+            if not token_obj:
+                return Response({"ok": True})
+
+            user = token_obj.user
+            user.telegram_chat_id = chat_id
+            user.save(update_fields["telegram_chat_id"])
+
+            token_obj.is_used = True
+            token_obj.save(update_fields["is_used"])
+
+        return Response({"ok": True})

@@ -1,7 +1,8 @@
 from django.urls import path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from .views import MeView, PasswordResetConfirmView, PasswordResetView, RegisterView
+from .views import (CreateTelegramLinkView, MeView, PasswordResetConfirmView, PasswordResetView, RegisterView,
+                    TelegramWebhookView)
 
 urlpatterns = [
     path("register/", RegisterView.as_view()),
@@ -11,4 +12,7 @@ urlpatterns = [
 
     path("password/reset/", PasswordResetView.as_view()),
     path("password/reset/confirm/", PasswordResetConfirmView.as_view()),
+
+    path("telegram/link/", CreateTelegramLinkView.as_view()),
+    path("telegram/webhook/", TelegramWebhookView.as_view()),
 ]
