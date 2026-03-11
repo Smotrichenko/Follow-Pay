@@ -19,7 +19,24 @@ class PostListView(generics.ListAPIView):
     permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):
-        return Post.objects.filter(is_published=True).select_related("creator")
+        return (
+            Post.objects.filter(is_published=True).select_related("creator").order_by("-published_at", "-created_at")
+        )
+
+
+class MyPostListView(generics.ListAPIView):
+    """Список постов текущего автора. Нужен для личного кабинета автора:
+    он видит все свои посты, даже неопубликованные."""
+
+    serializer_class = PostSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        creator = Creator.objects.filter(user=self.request.user).first()
+        if not creator:
+            return Post.objects.none()
+
+        return Post.objects.filter(creator=creator).select_related("creator").order_by("-created_at")
 
 
 class PostCreateView(generics.CreateAPIView):
@@ -31,7 +48,7 @@ class PostCreateView(generics.CreateAPIView):
     def perform_create(self, serializer):
         creator = Creator.objects.filter(user=self.request.user).first()
         if not creator:
-            raise ValueError("Пользователем не является автором.")
+            raise ValueError("Сначало создайте профиль автора.")
 
         serializer.save(creator=creator)
 
@@ -46,16 +63,24 @@ class PostDetailView(generics.RetrieveAPIView):
     def retrieve(self, request, *args, **kwargs):
         post = self.get_object()
 
-        if post.is_paid:
-            if not request.user.is_authenticated:
-                return Response({"detail": "Требуется авторизация"}, status=401)
+        # Если пост бесплатный — всё ок
+        if not post.is_paid:
+            return super().retrieve(request, *args, **kwargs)
 
-            has_sub = Subscription.objects.filter(
-                user=request.user, creator=post.creator, status=Subscription.Status.ACTIVE
-            ).exists()
+        # Если пользователь не залогинен — доступ запрещаем
+        if not request.user.is_authenticated:
+            return Response(
+                {"detail": "Для просмотра платного поста нужна авторизация."},
+                status=401,
+            )
 
-            if not has_sub:
-                return Response({"detail": "Нет подписки на автора."})
+        # Проверяем активную подписку на автора
+        has_sub = Subscription.objects.filter(
+            user=request.user, creator=post.creator, status=Subscription.Status.ACTIVE
+        ).exists()
+
+        if not has_sub:
+            return Response({"detail": "Нет подписки на автора."})
 
         return super().retrieve(request, *args, **kwargs)
 
@@ -68,14 +93,43 @@ class PublishPostView(APIView):
     def post(self, request, post_id):
         post = Post.objects.select_related("creator").filter(id=post_id).first()
         if not post:
-            return Response({"detail": "Пост не найден."})
+            return Response({"detail": "Пост не найден."}, status=404)
 
-        self.check_object_permissions(request, post)
+        # Проверяем, что текущий пользователь — владелец поста
+        if post.creator.user_id != request.user.id:
+            return Response({"detail": "У вас нет доступа к этому посту."}, status=403)
 
         post.is_published = True
         post.published_at = timezone.now()
         post.save(update_fields=["is_published", "published_at"])
 
+        # Уведомляем подписчиков только после публикации
         notify_subscribers_about_new_post.delay(post.id)
 
         return Response({"detail": "Пост опубликован."})
+
+
+class PostUpdateView(generics.UpdateAPIView):
+    """Редактирование поста"""
+
+    serializer_class = PostSerializer
+    permission_classes = [permissions.IsAuthenticated, IsCreatorOwner]
+    queryset = Post.objects.select_related("creator")
+
+    def get_object(self):
+        obj = super().get_object()
+        self.check_object_permissions(self.request, obj)
+        return obj
+
+
+class PostDeleteView(generics.DestroyAPIView):
+    """Удаление поста. Удалять может только владелец поста."""
+
+    serializer_class = PostSerializer
+    permission_classes = [permissions.IsAuthenticated, IsCreatorOwner]
+    queryset = Post.objects.select_related("creator")
+
+    def get_object(self):
+        obj = super().get_object()
+        self.check_object_permissions(self.request, obj)
+        return obj
