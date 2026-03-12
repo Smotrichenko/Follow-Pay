@@ -1,4 +1,5 @@
 from rest_framework import serializers
+
 from .models import Creator
 
 
@@ -7,8 +8,8 @@ class CreatorSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Creator
-        fields = ("id", "display_name", "subscription_price_rub", "subscription_currency")
-        read_only_fields = ("id",)
+        fields = ("id", "display_name", "subscription_price_rub", "created_at")
+        read_only_fields = ("id", "created_at")
 
 
 class CreatorMeUpdateSerializer(serializers.ModelSerializer):
