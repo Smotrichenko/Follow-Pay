@@ -1,0 +1,33 @@
+{% extends "web/base.html" %}
+
+{% block title %}{{ post.title }} — Follow&Pay{% endblock %}
+
+{% block content %}
+<div class="card card-soft">
+    <div class="card-body">
+        <div class="small text-muted mb-2">
+            Автор: <b>{{ post.creator.display_name }}</b>
+        </div>
+
+        <h1 class="h4">{{ post.title }}</h1>
+
+        {% if can_view_full %}
+            <div class="mt-3">
+                <p style="white-space: pre-wrap;">{{ post.body }}</p>
+            </div>
+        {% else %}
+            <div class="alert alert-warning mt-3">
+                Это платный пост. Чтобы прочитать его полностью, нужна активная подписка на автора.
+            </div>
+
+            {% if user.is_authenticated %}
+                <a class="btn btn-primary" href="{% url 'web_subscribe' post.creator.id %}">
+                    Оформить подписку за {{ post.creator.subscription_price_rub }} ₽
+                </a>
+            {% else %}
+                <div class="text-muted">Войдите в аккаунт, чтобы оформить подписку.</div>
+            {% endif %}
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

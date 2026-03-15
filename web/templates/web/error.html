@@ -1,0 +1,10 @@
+{% extends "web/base.html" %}
+
+{% block title %}Ошибка — Follow&Pay{% endblock %}
+
+{% block content %}
+<div class="alert alert-danger">
+    {{ message }}
+</div>
+<a href="{% url 'web_home' %}" class="btn btn-outline-secondary">На главную</a>
+{% endblock %}

@@ -1,0 +1,94 @@
+{% extends "web/base.html" %}
+
+{% block title %}Личный кабинет — Follow&Pay{% endblock %}
+
+{% block content %}
+<h2 class="h4 mb-3">Личный кабинет</h2>
+
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="card card-soft h-100">
+            <div class="card-body">
+                <h5 class="card-title">Профиль</h5>
+                <p class="mb-1"><b>Email:</b> {{ user.email }}</p>
+                <p class="mb-3">
+                    <b>Telegram:</b>
+                    {% if user.telegram_chat_id %}
+                        <span class="text-success">подключён</span>
+                    {% else %}
+                        <span class="text-muted">не подключён</span>
+                    {% endif %}
+                </p>
+
+                <a class="btn btn-outline-primary btn-sm" href="{% url 'web_my_subscriptions' %}">
+                    Мои подписки
+                </a>
+
+                {% if creator_profile %}
+                    <a class="btn btn-outline-secondary btn-sm" href="{% url 'web_my_posts' %}">
+                        Мои посты
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card card-soft h-100">
+            <div class="card-body">
+                <h5 class="card-title">Кратко по подпискам</h5>
+
+                {% if subscriptions %}
+                    <ul class="list-group list-group-flush">
+                        {% for sub in subscriptions %}
+                            <li class="list-group-item px-0 d-flex justify-content-between">
+                                <span>{{ sub.creator.display_name }}</span>
+                                {% if sub.status == "active" %}
+                                    <span class="badge text-bg-success">Активна</span>
+                                {% else %}
+                                    <span class="badge text-bg-secondary">Отменена</span>
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted">У вас пока нет подписок.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if creator_profile %}
+<div class="card card-soft mt-3">
+    <div class="card-body">
+        <h5 class="card-title">Ваш профиль автора</h5>
+        <p class="mb-1"><b>Имя:</b> {{ creator_profile.display_name }}</p>
+        <p class="mb-0"><b>Цена подписки:</b> {{ creator_profile.subscription_price_rub }} ₽</p>
+    </div>
+</div>
+
+<div class="card card-soft mt-3">
+    <div class="card-body">
+        <h5 class="card-title">Последние посты</h5>
+
+        {% if my_posts %}
+            <ul class="list-group list-group-flush">
+                {% for post in my_posts %}
+                    <li class="list-group-item px-0 d-flex justify-content-between">
+                        <span>{{ post.title }}</span>
+                        {% if post.is_published %}
+                            <span class="badge text-bg-success">Опубликован</span>
+                        {% else %}
+                            <span class="badge text-bg-warning">Черновик</span>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="text-muted">У вас пока нет постов.</p>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}
