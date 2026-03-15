@@ -1,0 +1,13 @@
+{% extends "web/base.html" %}
+
+{% block title %}Оплата отменена — Follow&Pay{% endblock %}
+
+{% block content %}
+<div class="card card-soft">
+    <div class="card-body text-center py-5">
+        <h2 class="h4 mb-3">Оплата отменена</h2>
+        <p class="text-muted">Вы можете вернуться к автору и попробовать снова.</p>
+        <a class="btn btn-outline-primary" href="{% url 'web_creators' %}">К списку авторов</a>
+    </div>
+</div>
+{% endblock %}

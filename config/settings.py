@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     "posts",
     "subscriptions",
     "payments",
+    "web",
 
 ]
 

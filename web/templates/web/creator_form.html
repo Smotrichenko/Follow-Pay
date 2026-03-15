@@ -1,0 +1,40 @@
+{% extends "web/base.html" %}
+
+{% block title %}Профиль автора — Follow&Pay{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-7 col-lg-6">
+        <div class="card card-soft">
+            <div class="card-body">
+                <h2 class="h4 mb-3">
+                    {% if creator %}Редактировать профиль автора{% else %}Стать автором{% endif %}
+                </h2>
+
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label class="form-label">Имя автора</label>
+                        {{ form.display_name }}
+                        {% if form.display_name.errors %}
+                            <div class="text-danger small">{{ form.display_name.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Цена подписки (₽)</label>
+                        {{ form.subscription_price_rub }}
+                        {% if form.subscription_price_rub.errors %}
+                            <div class="text-danger small">{{ form.subscription_price_rub.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Сохранить</button>
+                    <a href="{% url 'web_dashboard' %}" class="btn btn-outline-secondary">Назад</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

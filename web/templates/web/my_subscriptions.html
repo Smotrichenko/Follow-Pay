@@ -1,0 +1,46 @@
+{% extends "web/base.html" %}
+
+{% block title %}Мои подписки — Follow&Pay{% endblock %}
+
+{% block content %}
+<h2 class="h4 mb-3">Мои подписки</h2>
+
+<div class="card card-soft">
+    <div class="card-body">
+        {% if subscriptions %}
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead>
+                        <tr>
+                            <th>Автор</th>
+                            <th>Статус</th>
+                            <th>Дата</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sub in subscriptions %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'web_creator_detail' sub.creator.id %}">
+                                        {{ sub.creator.display_name }}
+                                    </a>
+                                </td>
+                                <td>
+                                    {% if sub.status == "active" %}
+                                        <span class="badge text-bg-success">Активна</span>
+                                    {% else %}
+                                        <span class="badge text-bg-secondary">Отменена</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ sub.created_at|date:"d.m.Y H:i" }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-muted">У вас пока нет подписок.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
