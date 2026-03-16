@@ -11,7 +11,7 @@ def send_telegram_message_task(user_id, text):
     """Фоновая задача для отправки уведомлений в Telegram"""
 
     user = User.objects.filter(id=user_id).first()
-    if not user or not user.telegram_chat_id:
+    if not user:
         return
 
     if not user.telegram_chat_id:
