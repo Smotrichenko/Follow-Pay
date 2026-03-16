@@ -1,17 +1,45 @@
 import secrets
 
+from django.db.models.expressions import result
 from rest_framework import generics, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .models import TelegramLinkToken
-from .password_reset import PasswordResetConfirmSerializer, PasswordResetSerializer
-from .serializers import MeSerializer, RegisterSerializer
+from .serializers import MeSerializer, RequestCodeSerializer, VerifyCodeSerializer
 
 
-class RegisterView(generics.CreateAPIView):
+class RequestCodeView(APIView):
     permission_classes = [permissions.AllowAny]
-    serializer_class = RegisterSerializer
+
+    def post(self, request):
+        serializer = RequestCodeSerializer
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        if result["delivery_method"] == "telegram":
+            detail = "Код отправлен в Telegram."
+        else:
+            detail = "Код отправлен. Проверьте консоль сервера."
+
+        return Response({"detail": detail})
+
+
+class VerifyCodeView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        serializer = VerifyCodeSerializer
+        serializer.is_valid(raise_exception=True)
+        result = serializer.save()
+
+        return Response(
+            {
+                "refresh": result["refresh"],
+                "access": result["access"],
+                "user": MeSerializer(result["user"]).data,
+            }
+        )
 
 
 class MeView(generics.RetrieveAPIView):
@@ -20,26 +48,6 @@ class MeView(generics.RetrieveAPIView):
 
     def get_object(self):
         return self.request.user
-
-
-class PasswordResetView(APIView):
-    permission_classes = [permissions.AllowAny]
-
-    def post(self, request):
-        s = PasswordResetSerializer(data=request.data)
-        s.is_valid(raise_exception=True)
-        s.save()
-        return Response({"detail": "Ссылка для сброса пароля отправлена на электронную почту."})
-
-
-class PasswordResetConfirmView(APIView):
-    permission_classes = [permissions.AllowAny]
-
-    def post(self, request):
-        s = PasswordResetConfirmSerializer(data=request.data)
-        s.is_valid(raise_exception=True)
-        s.save()
-        return Response({"detail": "Пароль обновлен."})
 
 
 class CreateTelegramLinkView(APIView):
@@ -83,9 +91,9 @@ class TelegramWebhookView(APIView):
 
             user = token_obj.user
             user.telegram_chat_id = chat_id
-            user.save(update_fields["telegram_chat_id"])
+            user.save(update_fields=["telegram_chat_id"])
 
             token_obj.is_used = True
-            token_obj.save(update_fields["is_used"])
+            token_obj.save(update_fields=["is_used"])
 
         return Response({"ok": True})

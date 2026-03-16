@@ -1,21 +1,29 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-from .models import TelegramLinkToken, User
+from .models import PhoneLoginCode, TelegramLinkToken, User
 
 
 @admin.register(User)
 class CustomUserAdmin(UserAdmin):
     model = User
 
-    list_display = ("id", "email", "is_staff", "is_active", "telegram_chat_id")
-    ordering = ("email",)
-    search_fields = ("email", "telegram_chat_id")
+    list_display = ("id", "phone", "email", "is_staff", "is_active", "telegram_chat_id")
+    ordering = ("phone",)
+    search_fields = ("phone", "email", "telegram_chat_id")
 
     fieldsets = (
-        (None, {"fields": ("email", "password")}),
+        (None, {"fields": ("phone", "password")}),
         ("Permissions", {"fields": ("is_active", "is_staff", "is_superuser", "groups", "user_permissions")}),
-        ("Telegram", {"fields": ("telegram_chat_id",)}),
+        (
+            "Contacts",
+            {
+                "fields": (
+                    "email",
+                    "telegram_chat_id",
+                )
+            },
+        ),
     )
 
     add_fieldsets = (
@@ -23,7 +31,7 @@ class CustomUserAdmin(UserAdmin):
             None,
             {
                 "classes": ("wide",),
-                "fields": ("email", "password1", "password2", "is_staff", "is_active"),
+                "fields": ("phone", "email", "password1", "password2", "is_staff", "is_active"),
             },
         ),
     )
@@ -31,7 +39,13 @@ class CustomUserAdmin(UserAdmin):
     filter_horizontal = ("groups", "user_permissions")
 
 
+@admin.register(PhoneLoginCode)
+class PhoneLoginCodeAdmin(admin.ModelAdmin):
+    list_display = ("id", "phone", "code", "is_used", "created_at")
+    search_fields = ("phone", "code")
+
+
 @admin.register(TelegramLinkToken)
 class TelegramLinkTokenAdmin(admin.ModelAdmin):
     list_display = ("id", "user", "token", "is_used", "created_at")
-    search_fields = ("token", "user__email")
+    search_fields = ("token", "user__phone")

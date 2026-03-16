@@ -5,20 +5,33 @@ from .managers import UserManager
 
 
 class User(AbstractUser, PermissionsMixin):
-    email = models.EmailField(unique=True)
+    phone = models.CharField(max_length=20, unique=True)
+    email = models.EmailField(blank=True, null=True)
 
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
 
     telegram_chat_id = models.BigIntegerField(null=True, blank=True)
 
-    USERNAME_FIELD = "email"
+    USERNAME_FIELD = "phone"
     REQUIRED_FIELDS = []
 
     objects = UserManager
 
     def __str__(self):
-        return self.email
+        return self.phone
+
+
+class PhoneLoginCode(models.Model):
+    """Одноразовый код для входа по телефону"""
+
+    phone = models.CharField(max_length=20)
+    code = models.CharField(max_length=6)
+    is_used = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.phone} - {self.code}"
 
 
 class TelegramLinkToken(models.Model):
@@ -30,4 +43,4 @@ class TelegramLinkToken(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.user.email} - {self.token}"
+        return f"{self.user.phone} - {self.token}"
