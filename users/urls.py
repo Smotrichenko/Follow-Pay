@@ -5,7 +5,7 @@ from .views import CreateTelegramLinkView, MeView, RequestCodeView, TelegramWebh
 urlpatterns = [
     path("request-code/", RequestCodeView.as_view(), name="request_code"),
     path("verify-code/", VerifyCodeView.as_view(), name="verify_code"),
-    path("me/", MeView.as_view()),
-    path("telegram/link/", CreateTelegramLinkView.as_view()),
-    path("telegram/webhook/", TelegramWebhookView.as_view()),
+    path("me/", MeView.as_view(), name="user_me"),
+    path("telegram/link/", CreateTelegramLinkView.as_view(), name="telegram_link"),
+    path("telegram/webhook/", TelegramWebhookView.as_view(), name="telegram_webhook"),
 ]

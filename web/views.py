@@ -1,10 +1,13 @@
-from pyexpat.errors import messages
-
+from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth import get_user_model, login, logout
 from django.contrib.auth.decorators import login_required
+from django.core.serializers import serialize
+from django.db.models.expressions import result
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.generic import DetailView, ListView
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from creators.models import Creator
 from creators.services import create_or_update_creator_stripe_data
@@ -13,7 +16,9 @@ from payments.services import stripe_create_checkout_session
 from posts.models import Post
 from posts.tasks import notify_subscribers_about_new_post
 from subscriptions.models import Subscription
-from web.forms import CreateForm, LoginForm, PostForm, RegisterForm
+from users.models import PhoneLoginCode, TelegramLinkToken
+from users.serializers import RequestCodeSerializer, VerifyCodeSerializer
+from web.forms import CreateForm, PostForm, RequestCodeForm, VerifyCodeForm
 
 User = get_user_model()
 
@@ -100,45 +105,74 @@ class PostDetailView(DetailView):
         return context
 
 
-def register_view(request):
-    """Регистрация пользователя"""
-
-    if request.user.is_authenticated:
-        return redirect("web_dashboard")
-
-    form = RegisterForm(request.POST)
-
-    if request.method == "POST" and form.is_valid():
-        user = form.save()
-        login(request, user)
-        messages.success(request, "Регистрация прошла успешно!")
-        return redirect("web_dashboard")
-
-    return render(request, "web/register.html", {"form": form})
-
-
 def login_view(request):
-    """Вход по email и паролю"""
+    """Регистрация пользователя(вводит номер телефона и получает код)"""
 
     if request.user.is_authenticated:
         return redirect("web_dashboard")
 
-    form = LoginForm(request.POST)
+    form = RequestCodeForm(request.POST)
 
-    if request.method == "POST" and form.is_valid():
-        phone = form.cleaned_data["phone"]
-        password = form.cleaned_data["password"]
+    if request.method == "POST":
+        if form.is_valid():
+            serializer = RequestCodeSerializer(
+                data={"phone": form.cleaned_data["phone"]}
+            )
 
-        user = User.objects.filter(phone=phone).first()
+            if serializer.is_valid():
+                result = serializer.save()
 
-        if user and user.check_password(password):
-            login(request, user)
-            messages.success(request, "Вы успешно вошли в аккаунт!")
-            return redirect("web_dashboard")
+                request.session["auth_phone"] = form.cleaned_data["phone"]
 
-        messages.error(request, "Неверный номер телефона или пароль!")
+                if result["delivery_method"] == "telegram":
+                    messages.success(request, "Код отправлен в Telegram.")
+                else:
+                    messages.success(request, "Код отправлен. Проверьте консоль сервера.")
+
+                return redirect("web_verify_code")
+
+            messages.error(request, "Ошибка при отправке кода.")
+        else:
+            messages.error(request, "Проверьте номер телефона.")
 
     return render(request, "web/login.html", {"form": form})
+
+
+def verify_code_view(request):
+    """Пользователь вводит код и входит в систему"""
+
+    if request.user.is_authenticated:
+        return redirect("web_dashboard")
+
+    initial_phone = request.session.get("auth_phone", "")
+    form = VerifyCodeForm(request.POST or None, initial={"phone": initial_phone})
+
+    if request.method == "POST":
+        if form.is_valid():
+            serializer = VerifyCodeSerializer(
+                data={
+                    "phone": form.cleaned_data["phone"],
+                    "code": form.cleaned_data["code"],
+                }
+            )
+
+            if serializer.is_valid():
+                result = serializer.save()
+                user = result["user"]
+
+                login(request, user, backend="django.contrib.auth.backends.ModelBackend")
+
+                request.session["jwt_access"] = result["access"]
+                request.session["jwt_refresh"] = result["refresh"]
+
+                messages.success(request, "Вход выполнен успешно.")
+                return redirect("web_dashboard")
+
+            messages.error(request, "Неверный код или номер телефона.")
+        else:
+            messages.error(request, "Заполните форму корректно.")
+
+    return render(request, "web/verify_code.html", {"form": form})
 
 
 @login_required
@@ -146,6 +180,9 @@ def logout_view(request):
     """Выход из аккаунта"""
 
     logout(request)
+    request.session.pop("jwt_access", None)
+    request.session.pop("jwt_refresh", None)
+
     messages.info(request, "Вы вышли из аккаунта.")
     return redirect("web_home")
 
@@ -206,10 +243,25 @@ def dashboard_view(request):
     if creator_profile:
         my_posts = Post.objects.filter(creator=creator_profile).order_by("-created_at")[:5]
 
+    telegram_link = None
+    if not request.user.telegram_chat_id:
+        token = TelegramLinkToken.objects.filter(user=request.user, is_used=False).order_by("-created_at").first()
+
+        if not token:
+            import secrets
+            token = TelegramLinkToken.objects.create(
+                user=request.user,
+                token=secrets.token_hex(16),
+                is_used=False,
+            )
+
+        telegram_link = f"https://t.me/followandpay_bot?start={token.token}"
+
     context = {
         "subscriptions": subscriptions,
         "creator_profile": creator_profile,
         "my_posts": my_posts,
+        "telegram_link": telegram_link,
     }
     return render(request, "web/dashboard.html", context)
 
@@ -255,20 +307,23 @@ def creator_form_view(request):
 
     creator = getattr(request.user, "creator_profile", None)
 
-    if creator:
-        form = CreateForm(request.user or None, instance=creator)
+    if request.method == "POST":
+        form = CreateForm(
+            data=request.POST,
+            instance=creator,
+        )
+
+        if form.is_valid():
+            creator_obj = form.save(commit=False)
+            creator_obj.user = request.user
+            creator_obj.save()
+
+            create_or_update_creator_stripe_data(creator_obj)
+
+            messages.success(request, "Профиль автора сохранен.")
+            return redirect("web_dashboard")
     else:
-        form = CreateForm(request.user or None)
-
-    if request.method == "POST" and form.is_valid():
-        creator_obj = form.save(commit=False)
-        creator_obj.user = request.user
-        creator_obj.save()
-
-        create_or_update_creator_stripe_data(creator_obj)
-
-        messages.success(request, "Профиль автора сохранен.")
-        return redirect("web_dashboard")
+        form = CreateForm(instance=creator)
 
     return render(
         request,

@@ -49,7 +49,7 @@ class CreateCheckoutSessionView(APIView):
 
 class StripeWebhookView(APIView):
     """Webhook от Stripe"""
-
+    authentication_classes = []
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -58,8 +58,12 @@ class StripeWebhookView(APIView):
 
         try:
             event = stripe_construct_event(payload=payload, signature=signature)
-        except Exception:
+        except Exception as e:
+            print("STRIPE WEBHOOK ERROR:", str(e))
             return Response({"detail": "Invalid Webhook"}, status=400)
+
+        print("STRIPE WEBHOOK HIT")
+        print(event)
 
         if event["type"] == "checkout.session.completed":
             session = event["data"]["object"]

@@ -7,7 +7,7 @@ from config import settings
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("web.urls")),
-    path("api/auth/", include("users.urls")),
+    path("api/users/", include("users.urls")),
     path("api/creators/", include("creators.urls")),
     path("api/subscriptions/", include("subscriptions.urls")),
     path("api/posts/", include("posts.urls")),
