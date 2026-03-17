@@ -67,11 +67,12 @@ class VerifyCodeSerializer(serializers.Serializer):
         if not code_obj:
             raise serializers.ValidationError("Неверный код или номер телефона.")
 
-        if code_obj.created_data < timezone.now() - timedelta(minutes=10):
+        if code_obj.created_at < timezone.now() - timedelta(minutes=10):
             raise serializers.ValidationError("Срок действия кода истёк.")
 
         attrs["phone"] = phone
         attrs["code"] = code
+        attrs["code_obj"] = code_obj
 
         return attrs
 

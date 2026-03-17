@@ -3,59 +3,78 @@
 {% block title %}{{ creator.display_name }} — Follow&Pay{% endblock %}
 
 {% block content %}
-<div class="card card-soft mb-3">
-    <div class="card-body d-flex flex-wrap justify-content-between align-items-center gap-2">
-        <div>
-            <h2 class="h4 mb-1">{{ creator.display_name }}</h2>
-            <div class="text-muted small">
-                Подписка: <b>{{ creator.subscription_price_rub }} ₽</b>/мес
+<section class="container">
+    <div class="creator-card mb-4">
+        <div class="row align-items-center g-4">
+            <div class="col-lg-8">
+                <span class="mini-badge">Автор</span>
+                <h1 class="mt-3 mb-2">{{ creator.display_name }}</h1>
+                <p class="text-muted mb-0">
+                    Подпишитесь на автора, чтобы получить доступ к платным постам и получать уведомления о новых публикациях в Telegram.
+                </p>
             </div>
-        </div>
 
-        <div>
-            {% if user.is_authenticated %}
-                {% if is_subscribed %}
-                    <span class="badge text-bg-success">Вы подписаны</span>
-                {% else %}
-                    <a class="btn btn-primary" href="{% url 'web_subscribe' creator.id %}">
-                        Подписаться
-                    </a>
-                {% endif %}
-            {% else %}
-                <span class="text-muted small">Войдите, чтобы подписаться</span>
-            {% endif %}
-        </div>
-    </div>
-</div>
-
-<h3 class="h5 mb-3">Посты автора</h3>
-
-<div class="row g-3">
-    {% for post in posts %}
-        <div class="col-md-6 col-lg-4">
-            <div class="card card-soft h-100">
-                <div class="card-body">
-                    <div class="mb-2">
-                        {% if post.is_paid %}
-                            <span class="badge text-bg-warning">Платно</span>
-                        {% else %}
-                            <span class="badge text-bg-success">Free</span>
-                        {% endif %}
+            <div class="col-lg-4">
+                <div class="feature-card">
+                    <div class="text-muted small mb-1">Стоимость подписки</div>
+                    <div class="creator-price mb-3">
+                        {{ creator.subscription_price_rub }} ₽
+                        <span class="text-muted fs-6">/ месяц</span>
                     </div>
 
-                    <h5 class="card-title">{{ post.title }}</h5>
-                    <p class="card-text text-muted">
-                        {{ post.body|truncatechars:120 }}
-                    </p>
-
-                    <a class="btn btn-outline-primary btn-sm" href="{% url 'web_post_detail' post.id %}">
-                        Открыть
-                    </a>
+                    {% if user.is_authenticated %}
+                        {% if is_subscribed %}
+                            <span class="badge text-bg-success mb-2">Вы подписаны</span>
+                        {% else %}
+                            <a class="btn btn-primary btn-soft w-100" href="{% url 'web_subscribe' creator.id %}">
+                                Оформить подписку
+                            </a>
+                        {% endif %}
+                    {% else %}
+                        <a class="btn btn-primary btn-soft w-100" href="{% url 'web_login' %}">
+                            Войти и подписаться
+                        </a>
+                    {% endif %}
                 </div>
             </div>
         </div>
-    {% empty %}
-        <p class="text-muted">У автора пока нет постов.</p>
-    {% endfor %}
-</div>
+    </div>
+
+    <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+        <div>
+            <span class="mini-badge">Публикации</span>
+            <h2 class="mt-2 mb-0">Посты автора</h2>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        {% for post in posts %}
+            <div class="col-md-6 col-xl-4">
+                <div class="post-card h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="small text-muted">
+                            {{ post.published_at|date:"d.m.Y" }}
+                        </div>
+                        {% if post.is_paid %}
+                            <span class="content-badge content-paid">Платно</span>
+                        {% else %}
+                            <span class="content-badge content-free">Free</span>
+                        {% endif %}
+                    </div>
+
+                    <h5 class="mb-2">{{ post.title }}</h5>
+                    <p class="text-muted mb-4">
+                        {{ post.body|truncatechars:120 }}
+                    </p>
+
+                    <a class="btn btn-dark btn-soft btn-sm" href="{% url 'web_post_detail' post.id %}">
+                        Читать
+                    </a>
+                </div>
+            </div>
+        {% empty %}
+            <p class="text-muted">У автора пока нет постов.</p>
+        {% endfor %}
+    </div>
+</section>
 {% endblock %}

@@ -5,7 +5,7 @@ from .views import (
     CreatorListView,
     CreatorDetailView,
     PostDetailView,
-    register_view,
+
     login_view,
     logout_view,
     subscribe_creator_view,
@@ -17,7 +17,7 @@ from .views import (
     creator_form_view,
     post_create_view,
     post_update_view,
-    post_publish_view,
+    post_publish_view, verify_code_view,
 )
 
 urlpatterns = [
@@ -26,8 +26,8 @@ urlpatterns = [
     path("creators/<int:pk>/", CreatorDetailView.as_view(), name="web_creator_detail"),
     path("posts/<int:pk>/", PostDetailView.as_view(), name="web_post_detail"),
 
-    path("register/", register_view, name="web_register"),
     path("login/", login_view, name="web_login"),
+    path("verify-code/", verify_code_view, name="web_verify_code"),
     path("logout/", logout_view, name="web_logout"),
 
     path("subscribe/<int:creator_id>/", subscribe_creator_view, name="web_subscribe"),

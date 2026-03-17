@@ -3,40 +3,71 @@
 {% block title %}Личный кабинет — Follow&Pay{% endblock %}
 
 {% block content %}
-<h2 class="h4 mb-3">Личный кабинет</h2>
-
-<div class="row g-3">
-    <div class="col-lg-6">
-        <div class="card card-soft h-100">
-            <div class="card-body">
-                <h5 class="card-title">Профиль</h5>
-                <p class="mb-1"><b>Email:</b> {{ user.email }}</p>
-                <p class="mb-3">
-                    <b>Telegram:</b>
-                    {% if user.telegram_chat_id %}
-                        <span class="text-success">подключён</span>
-                    {% else %}
-                        <span class="text-muted">не подключён</span>
-                    {% endif %}
-                </p>
-
-                <a class="btn btn-outline-primary btn-sm" href="{% url 'web_my_subscriptions' %}">
-                    Мои подписки
-                </a>
-
-                {% if creator_profile %}
-                    <a class="btn btn-outline-secondary btn-sm" href="{% url 'web_my_posts' %}">
-                        Мои посты
-                    </a>
-                {% endif %}
-            </div>
-        </div>
+<section class="container">
+    <div class="section-heading mb-4">
+        <span class="mini-badge">Кабинет</span>
+        <h1 class="mt-3">Личный кабинет</h1>
+        <p class="text-muted">
+            Здесь вы можете управлять подписками, Telegram и авторским профилем.
+        </p>
     </div>
 
-    <div class="col-lg-6">
-        <div class="card card-soft h-100">
-            <div class="card-body">
-                <h5 class="card-title">Кратко по подпискам</h5>
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="feature-card h-100">
+                <h5 class="mb-3">Профиль</h5>
+
+                <p class="mb-2"><b>Телефон:</b> {{ user.phone }}</p>
+
+                {% if user.email %}
+                    <p class="mb-3"><b>Email:</b> {{ user.email }}</p>
+                {% endif %}
+
+                <div class="mb-3">
+                    <b>Telegram:</b>
+                    {% if user.telegram_chat_id %}
+                        <span class="badge text-bg-success">Подключён</span>
+                    {% else %}
+                        <span class="badge text-bg-secondary">Не подключён</span>
+                    {% endif %}
+                </div>
+
+                {% if not user.telegram_chat_id and telegram_link %}
+                    <a href="{{ telegram_link }}" target="_blank" class="btn btn-primary btn-soft mb-3">
+                        Подключить Telegram
+                    </a>
+                    <p class="small text-muted mb-0">
+                        Нажмите кнопку, перейдите в бота и нажмите Start.
+                    </p>
+                {% endif %}
+
+                <div class="d-flex flex-wrap gap-2 mt-4">
+                    <a class="btn btn-light btn-soft" href="{% url 'web_my_subscriptions' %}">
+                        Мои подписки
+                    </a>
+
+                    {% if creator_profile %}
+                        <a class="btn btn-light btn-soft" href="{% url 'web_my_posts' %}">
+                            Мои посты
+                        </a>
+                        <a class="btn btn-dark btn-soft" href="{% url 'web_creator_form' %}">
+                            Редактировать автора
+                        </a>
+                        <a class="btn btn-primary btn-soft" href="{% url 'web_post_create' %}">
+                            Новый пост
+                        </a>
+                    {% else %}
+                        <a class="btn btn-primary btn-soft" href="{% url 'web_creator_form' %}">
+                            Стать автором
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="feature-card h-100">
+                <h5 class="mb-3">Подписки</h5>
 
                 {% if subscriptions %}
                     <ul class="list-group list-group-flush">
@@ -52,43 +83,49 @@
                         {% endfor %}
                     </ul>
                 {% else %}
-                    <p class="text-muted">У вас пока нет подписок.</p>
+                    <p class="text-muted mb-0">У вас пока нет подписок.</p>
                 {% endif %}
             </div>
         </div>
     </div>
-</div>
 
-{% if creator_profile %}
-<div class="card card-soft mt-3">
-    <div class="card-body">
-        <h5 class="card-title">Ваш профиль автора</h5>
+    {% if creator_profile %}
+    <div class="feature-card mt-4">
+        <h5 class="mb-3">Ваш профиль автора</h5>
         <p class="mb-1"><b>Имя:</b> {{ creator_profile.display_name }}</p>
         <p class="mb-0"><b>Цена подписки:</b> {{ creator_profile.subscription_price_rub }} ₽</p>
     </div>
-</div>
 
-<div class="card card-soft mt-3">
-    <div class="card-body">
-        <h5 class="card-title">Последние посты</h5>
+    <div class="feature-card mt-4">
+        <h5 class="mb-3">Последние посты</h5>
 
         {% if my_posts %}
             <ul class="list-group list-group-flush">
                 {% for post in my_posts %}
-                    <li class="list-group-item px-0 d-flex justify-content-between">
+                    <li class="list-group-item px-0 d-flex justify-content-between align-items-center flex-wrap gap-2">
                         <span>{{ post.title }}</span>
-                        {% if post.is_published %}
-                            <span class="badge text-bg-success">Опубликован</span>
-                        {% else %}
-                            <span class="badge text-bg-warning">Черновик</span>
-                        {% endif %}
+                        <div class="d-flex gap-2">
+                            {% if post.is_published %}
+                                <span class="badge text-bg-success">Опубликован</span>
+                            {% else %}
+                                <span class="badge text-bg-warning">Черновик</span>
+                            {% endif %}
+                            <a class="btn btn-light btn-soft btn-sm" href="{% url 'web_post_edit' post.id %}">
+                                Изменить
+                            </a>
+                            {% if not post.is_published %}
+                                <a class="btn btn-primary btn-soft btn-sm" href="{% url 'web_post_publish' post.id %}">
+                                    Опубликовать
+                                </a>
+                            {% endif %}
+                        </div>
                     </li>
                 {% endfor %}
             </ul>
         {% else %}
-            <p class="text-muted">У вас пока нет постов.</p>
+            <p class="text-muted mb-0">У вас пока нет постов.</p>
         {% endif %}
     </div>
-</div>
-{% endif %}
+    {% endif %}
+</section>
 {% endblock %}

@@ -67,4 +67,5 @@ def stripe_construct_event(payload, signature):
         payload=payload,
         sig_header=signature,
         secret=settings.STRIPE_WEBHOOK_SECRET,
+        tolerance=1800,
     )

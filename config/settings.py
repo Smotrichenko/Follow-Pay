@@ -9,7 +9,21 @@ environ.Env.read_env(BASE_DIR / ".env")
 
 SECRET_KEY = env("SECRET_KEY")
 DEBUG = env.bool("DEBUG", default=False)
-ALLOWED_HOSTS = []
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://undebatable-calandra-nonacademically.ngrok-free.dev',
+    'https://*.ngrok-free.app',
+    'https://*.ngrok-free.dev',
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+]
+
+ALLOWED_HOSTS = [
+    "127.0.0.1",
+    "localhost",
+    ".ngrok-free.app",
+    ".ngrok-free.dev",
+]
 
 INSTALLED_APPS = [
     "django.contrib.admin",
