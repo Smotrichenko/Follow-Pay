@@ -1,0 +1,21 @@
+#Poetry
+.venv/
+venv/
+
+#Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+#Env files
+.env
+
+#Git / IDE
+.git/
+.idea/
+.vscode/
+
+#Celery beat local files
+celerybeat-schedule
+celerybeat-schedule.*
