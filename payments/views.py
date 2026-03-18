@@ -41,7 +41,7 @@ class CreateCheckoutSessionView(APIView):
         )
 
         Payment.objects.create(
-            user=request.user, creator=creator, strip_session_id=session["id"], status=Payment.Status.PENDING
+            user=request.user, creator=creator, stripe_session_id=session["id"], status=Payment.Status.PENDING
         )
 
         return Response({"checkout_url": session["url"]})

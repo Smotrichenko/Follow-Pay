@@ -1,6 +1,5 @@
 import secrets
 
-from django.db.models.expressions import result
 from rest_framework import generics, permissions
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -14,9 +13,9 @@ class RequestCodeView(APIView):
     permission_classes = [permissions.AllowAny]
 
     def post(self, request):
-        serializer = RequestCodeSerializer
+        serializer = RequestCodeSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        result = serializer.save()
 
         if result["delivery_method"] == "telegram":
             detail = "Код отправлен в Telegram."
@@ -30,7 +29,7 @@ class VerifyCodeView(APIView):
     permission_classes = [permissions.AllowAny]
 
     def post(self, request):
-        serializer = VerifyCodeSerializer
+        serializer = VerifyCodeSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         result = serializer.save()
 
@@ -75,10 +74,9 @@ class TelegramWebhookView(APIView):
 
     def post(self, request):
         data = request.data
-
         message = data.get("message") or {}
-        text = data.get("text") or {}
-        chat = data.get("chat") or {}
+        text = message.get("text", "")
+        chat = message.get("chat") or {}
         chat_id = chat.get("id")
 
         if not text or not chat_id:
@@ -86,7 +84,11 @@ class TelegramWebhookView(APIView):
 
         if text.startswith("/start "):
             token = text.replace("/start ", "").strip()
-            token_obj = TelegramLinkToken.objects.filter(token=token, is_used=False).select_related("user").first()
+
+            token_obj = TelegramLinkToken.objects.filter(
+                token=token,
+                is_used=False,
+            ).select_related("user").first()
 
             if not token_obj:
                 return Response({"ok": True})

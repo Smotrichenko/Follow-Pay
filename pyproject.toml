@@ -33,7 +33,8 @@ lint = [
 ]
 test = [
     "pytest (>=9.0.2,<10.0.0)",
-    "pytest-django (>=4.12.0,<5.0.0)"
+    "pytest-django (>=4.12.0,<5.0.0)",
+    "pytest-cov (>=7.0.0,<8.0.0)"
 ]
 
 [tool.isort]
@@ -51,3 +52,40 @@ exclude = '''
   )/
 )
 '''
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings"
+python_files = ["tests.py", "test_*.py", "*_tests.py"]
+addopts = """
+--cov=users
+--cov=creators
+--cov=posts
+--cov=subscriptions
+--cov=payments
+--cov=web
+--cov-report=term-missing
+--cov-fail-under=80
+"""
+
+[tool.coverage.run]
+omit = [
+    "*/migrations/*",
+    "*/tests.py",
+    "tests/*",
+    "*/admin.py",
+    "*/apps.py",
+    "*/urls.py",
+    "config/settings.py",
+    "config/wsgi.py",
+    "config/asgi.py",
+    "config/__init__.py",
+    "manage.py",
+    "web/views.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "if __name__ == .__main__.:",
+    "raise NotImplementedError",
+]
