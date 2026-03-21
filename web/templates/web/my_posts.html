@@ -1,0 +1,54 @@
+{% extends "web/base.html" %}
+
+{% block title %}Мои посты — Follow&Pay{% endblock %}
+
+{% block content %}
+<h2 class="h4 mb-3">Мои посты</h2>
+
+<div class="card card-soft">
+    <div class="card-body">
+        <div class="mb-3 text-muted">
+            Автор: <b>{{ creator.display_name }}</b>
+        </div>
+
+        {% if posts %}
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead>
+                        <tr>
+                            <th>Название</th>
+                            <th>Тип</th>
+                            <th>Статус</th>
+                            <th>Дата</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for post in posts %}
+                            <tr>
+                                <td>{{ post.title }}</td>
+                                <td>
+                                    {% if post.is_paid %}
+                                        <span class="badge text-bg-warning">Платный</span>
+                                    {% else %}
+                                        <span class="badge text-bg-success">Бесплатный</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if post.is_published %}
+                                        <span class="badge text-bg-success">Опубликован</span>
+                                    {% else %}
+                                        <span class="badge text-bg-secondary">Черновик</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ post.created_at|date:"d.m.Y H:i" }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-muted">У вас пока нет постов.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

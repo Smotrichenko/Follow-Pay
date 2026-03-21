@@ -1,0 +1,211 @@
+{% extends "web/base.html" %}
+
+{% load static %}
+
+{% block title %}Follow&Pay — платформа подписок на авторов{% endblock %}
+
+{% block hero %}
+<section class="hero-main">
+    <div class="container py-5 py-lg-6">
+        <div class="row align-items-center g-4">
+            <div class="col-lg-6">
+
+                <h1 class="hero-title mb-3">
+                    Платформа продажи
+                    <span class="text-gradient">цифрового контента</span>
+                </h1>
+                <p class="hero-subtitle mb-4">
+                    Follow&Pay помогает авторам публиковать бесплатные и платные посты,
+                    получать оплату за подписку и уведомлять аудиторию о новых публикациях через Telegram.
+                </p>
+
+                <div class="d-flex flex-wrap gap-2">
+                    <a class="btn btn-primary btn-lg btn-soft" href="{% url 'web_creators' %}">
+                        Смотреть авторов
+                    </a>
+                    {% if user.is_authenticated %}
+                        <a class="btn btn-light btn-lg btn-soft" href="{% url 'web_dashboard' %}">
+                            Перейти в кабинет
+                        </a>
+                    {% else %}
+                        <a class="btn btn-light btn-lg btn-soft" href="{% url 'web_login' %}">
+                            Стать автором
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="hero-visual-card">
+
+
+                    <div class="hero-image-wrapper">
+                        <img
+                            src="{% static 'images/freepik__flat-vector-modern-cartoon-happy-creator-working-a__3875.png' %}"
+                            class="hero-image"
+                            alt="Follow&Pay platform illustration"
+                            style="max-height: 400px; width:auto;"
+                        >
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block content %}
+<section class="container mb-5">
+    <div class="section-heading text-center mb-4">
+        <span class="mini-badge">Что такое Follow&Pay</span>
+        <h2 class="mt-3">Платформа для публикации платного контента</h2>
+        <p class="text-muted section-text mx-auto">
+            Follow&Pay — это сервис, где авторы публикуют контент, настраивают цену подписки,
+            а пользователи получают доступ к закрытым материалам после оплаты.
+        </p>
+    </div>
+</section>
+
+<section class="container mb-5">
+    <div class="section-heading text-center mb-4">
+        <span class="mini-badge">Преимущества</span>
+        <h2 class="mt-3">Почему удобно пользоваться Follow&Pay</h2>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-6 col-xl-3">
+            <div class="feature-card h-100">
+                <div class="feature-icon">💳</div>
+                <h5>Оплата подписки</h5>
+                <p class="text-muted mb-0">
+                    Подключение оплаты через Stripe Checkout с понятным сценарием подписки на автора.
+                </p>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-xl-3">
+            <div class="feature-card h-100">
+                <div class="feature-icon">🔔</div>
+                <h5>Telegram-уведомления</h5>
+                <p class="text-muted mb-0">
+                    Пользователь получает уведомление о новой публикации сразу после выхода поста.
+                </p>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-xl-3">
+            <div class="feature-card h-100">
+                <div class="feature-icon">📝</div>
+                <h5>Бесплатные и платные посты</h5>
+                <p class="text-muted mb-0">
+                    Автор сам решает, какой контент открыть всем, а какой оставить только подписчикам.
+                </p>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-xl-3">
+            <div class="feature-card h-100">
+                <div class="feature-icon">⚡</div>
+                <h5>Удобный старт</h5>
+                <p class="text-muted mb-0">
+                    Регистрация, создание профиля автора, публикация постов и запуск подписки в одном месте.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="container mb-5">
+    <div class="section-heading text-center mb-4">
+        <span class="mini-badge">Как это работает</span>
+        <h2 class="mt-3">Простой сценарий для автора и подписчика</h2>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-6 col-xl-3">
+            <div class="step-card h-100">
+                <div class="step-number">1</div>
+                <h5>Регистрация</h5>
+                <p class="text-muted mb-0">
+                    Пользователь создаёт аккаунт и при желании становится автором.
+                </p>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-xl-3">
+            <div class="step-card h-100">
+                <div class="step-number">2</div>
+                <h5>Настройка автора</h5>
+                <p class="text-muted mb-0">
+                    Автор указывает имя и цену подписки, после чего может публиковать контент.
+                </p>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-xl-3">
+            <div class="step-card h-100">
+                <div class="step-number">3</div>
+                <h5>Подписка</h5>
+                <p class="text-muted mb-0">
+                    Пользователь оформляет подписку через Stripe и получает доступ к платным постам.
+                </p>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-xl-3">
+            <div class="step-card h-100">
+                <div class="step-number">4</div>
+                <h5>Уведомления</h5>
+                <p class="text-muted mb-0">
+                    Когда выходит новый пост, подписчики получают сообщение в Telegram.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="container mb-4">
+    <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+        <div>
+            <span class="mini-badge">Лента</span>
+            <h2 class="mt-2 mb-0">Последние публикации</h2>
+        </div>
+        <a class="btn btn-light btn-soft" href="{% url 'web_creators' %}">Все авторы</a>
+    </div>
+
+    <div class="row g-3">
+        {% for post in posts %}
+            <div class="col-md-6 col-xl-4">
+                <div class="post-card h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="small text-muted">
+                            {{ post.creator.display_name }}
+                        </div>
+                        {% if post.is_paid %}
+                            <span class="content-badge content-paid">Платно</span>
+                        {% else %}
+                            <span class="content-badge content-free">Free</span>
+                        {% endif %}
+                    </div>
+
+                    <h5 class="mb-2">{{ post.title }}</h5>
+                    <p class="text-muted mb-4">
+                        {{ post.body|truncatechars:120 }}
+                    </p>
+
+                    <div class="mt-auto">
+                        <a class="btn btn-dark btn-soft btn-sm" href="{% url 'web_post_detail' post.id %}">
+                            Читать
+                        </a>
+                        <a class="btn btn-light btn-soft btn-sm" href="{% url 'web_creator_detail' post.creator.id %}">
+                            Автор
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <p class="text-muted">Пока опубликованных постов нет.</p>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

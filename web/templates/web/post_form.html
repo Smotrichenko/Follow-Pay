@@ -1,0 +1,49 @@
+{% extends "web/base.html" %}
+
+{% block title %}
+    {% if is_edit %}Редактировать пост{% else %}Создать пост{% endif %} — Follow&Pay
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card card-soft">
+            <div class="card-body">
+                <h2 class="h4 mb-3">
+                    {% if is_edit %}Редактировать пост{% else %}Создать пост{% endif %}
+                </h2>
+
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label class="form-label">Заголовок</label>
+                        {{ form.title }}
+                        {% if form.title.errors %}
+                            <div class="text-danger small">{{ form.title.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Текст</label>
+                        {{ form.body }}
+                        {% if form.body.errors %}
+                            <div class="text-danger small">{{ form.body.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-check mb-3">
+                        {{ form.is_paid }}
+                        <label class="form-check-label">Платный пост</label>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        {% if is_edit %}Сохранить{% else %}Создать{% endif %}
+                    </button>
+                    <a href="{% url 'web_my_posts' %}" class="btn btn-outline-secondary">Назад</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
